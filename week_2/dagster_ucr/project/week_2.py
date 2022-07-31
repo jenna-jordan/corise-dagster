@@ -10,10 +10,17 @@ def get_s3_data():
     pass
 
 
-@op
-def process_data():
-    # Use your op from week 1
-    pass
+@op(
+    ins={"stocks": In(dagster_type=List[Stock], description="List of Stocks")},
+    out={"aggregation": Out(dagster_type=Aggregation, description="Aggregation of stock data")},
+)
+def process_data(stocks: List[Stock]):
+    stock_high = stocks[0]
+    for stock in stocks[1:]:
+        if stock.high > stock_high.high:
+            stock_high = stock
+    aggregation = Aggregation(date=stock_high.date, high=stock_high.high)
+    return aggregation
 
 
 @op
@@ -23,8 +30,7 @@ def put_redis_data():
 
 @graph
 def week_2_pipeline():
-    # Use your graph from week 1
-    pass
+    put_redis_data(process_data(get_s3_data()))
 
 
 local = {
