@@ -100,7 +100,7 @@ def mock_s3_resource():
     },
     description="A resource that defines a S3 client"
 )
-def s3_resource(context):
+def s3_resource(context) -> S3:
     """This resource defines a S3 client"""
     return S3(
         bucket=context.resource_config["bucket"], 
@@ -117,7 +117,7 @@ def s3_resource(context):
     },
     description="A resource that defines a Redis client"
 )
-def redis_resource(context):
+def redis_resource(context) -> Redis:
     """This resource defines a Redis client"""
     return Redis(
         host=context.resource_config["host"], 
