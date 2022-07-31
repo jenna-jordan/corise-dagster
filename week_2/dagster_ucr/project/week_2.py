@@ -6,12 +6,12 @@ from dagster_ucr.resources import mock_s3_resource, redis_resource, s3_resource
 
 
 @op(
-    config_schema={"key_name": str},
+    config_schema={"s3_key": str},
     required_resource_keys={"s3"},
     out={"stocks": Out(dagster_type=List[Stock])}
 )
 def get_s3_data(context):
-    key_name = context.op_config["key_name"]
+    key_name = context.op_config["s3_key"]
     output = list()
     data = context.resources.s3.get_data(key_name)
     for row in data:
