@@ -19,28 +19,47 @@ from project.sensors import get_s3_keys
 from project.types import Aggregation, Stock
 
 
-@op
-def get_s3_data():
-    # Use your ops from week 2
-    pass
+@op(
+    config_schema={"s3_key": str},
+    required_resource_keys={"s3"},
+    out={"stocks": Out(dagster_type=List[Stock])}
+)
+def get_s3_data(context):
+    key_name = context.op_config["s3_key"]
+    output = list()
+    data = context.resources.s3.get_data(key_name)
+    for row in data:
+        stock = Stock.from_list(row)
+        output.append(stock)
+    return output
 
 
-@op
-def process_data():
-    # Use your ops from week 2
-    pass
+@op(
+    ins={"stocks": In(dagster_type=List[Stock], description="List of Stocks")},
+    out={"aggregation": Out(dagster_type=Aggregation, description="Aggregation of stock data")},
+)
+def process_data(stocks: List[Stock]):
+    stock_high = stocks[0]
+    for stock in stocks[1:]:
+        if stock.high > stock_high.high:
+            stock_high = stock
+    aggregation = Aggregation(date=stock_high.date, high=stock_high.high)
+    return aggregation
 
+@op(
+    required_resource_keys={"redis"},
+    ins={"aggregation": In(dagster_type=Aggregation, description="Aggregation of stock data")}
+)
+def put_redis_data(context, aggregation: Aggregation):
+    date_str = aggregation.date.isoformat()
+    high_str = str(aggregation.high)
+    context.resources.redis.put_data(name=date_str, value=high_str)
 
-@op
-def put_redis_data():
-    # Use your ops from week 2
-    pass
 
 
 @graph
 def week_3_pipeline():
-    # Use your graph from week 2
-    pass
+    put_redis_data(process_data(get_s3_data()))
 
 
 local = {
