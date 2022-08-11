@@ -122,6 +122,14 @@ docker_week_3_schedule = ScheduleDefinition(
     cron_schedule= "0 * * * *")    
 
 
-@sensor
+@sensor(job=docker_week_3_pipeline)
 def docker_week_3_sensor():
-    pass
+    new_s3_keys = get_s3_keys(bucket="dagster", prefix="prefix", endpoint_url="http://host.docker.internal:4566")
+    if not new_s3_keys:
+        yield SkipReason("No new files")
+        return
+    for key in new_s3_keys:
+        yield RunRequest(
+            run_key=key,
+            run_config={"ops": {"get_s3_data": {"config": {"s3_key": key}}}}
+        )
