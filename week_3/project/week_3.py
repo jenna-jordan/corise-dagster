@@ -111,10 +111,15 @@ docker_week_3_pipeline = week_3_pipeline.to_job(
     op_retry_policy=RetryPolicy(max_retries=10, delay=1),
 )
 
+# run the local_week_3_pipeline every 15 minutes
+local_week_3_schedule = ScheduleDefinition(
+    job=local_week_3_pipeline, 
+    cron_schedule= "*/15 * * * *")  
 
-local_week_3_schedule = None  # Add your schedule
-
-docker_week_3_schedule = None  # Add your schedule
+# run the docker_week_3_pipeline at the start of every hour
+docker_week_3_schedule = ScheduleDefinition(
+    job=docker_week_3_pipeline, 
+    cron_schedule= "0 * * * *")    
 
 
 @sensor
