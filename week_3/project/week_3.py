@@ -87,9 +87,27 @@ docker = {
     "ops": {"get_s3_data": {"config": {"s3_key": "prefix/stock_9.csv"}}},
 }
 
-
-def docker_config():
-    pass
+@static_partitioned_config(partition_keys=["stock_1", "stock_2", "stock_3", "stock_4", "stock_5", "stock_6", "stock_7", "stock_8", "stock_9", "stock_10"])
+def docker_config(partition_key: str):
+    return {
+        "resources": {
+            "s3": {
+                "config": {
+                    "bucket": "dagster",
+                    "access_key": "test",
+                    "secret_key": "test",
+                    "endpoint_url": "http://host.docker.internal:4566",
+                }
+            },
+            "redis": {
+                "config": {
+                    "host": "redis",
+                    "port": 6379,
+                }
+            },
+        },
+        "ops": {"get_s3_data": {"config": {"s3_key": f"prefix/{partition_key}.csv"}}},
+    }
 
 
 local_week_3_pipeline = week_3_pipeline.to_job(
