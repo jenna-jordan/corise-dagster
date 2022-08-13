@@ -87,7 +87,7 @@ docker = {
     "ops": {"get_s3_data": {"config": {"s3_key": "prefix/stock_9.csv"}}},
 }
 
-@static_partitioned_config(partition_keys=["stock_1", "stock_2", "stock_3", "stock_4", "stock_5", "stock_6", "stock_7", "stock_8", "stock_9", "stock_10"])
+@static_partitioned_config(partition_keys=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
 def docker_config(partition_key: str):
     return {
         "resources": {
@@ -106,7 +106,7 @@ def docker_config(partition_key: str):
                 }
             },
         },
-        "ops": {"get_s3_data": {"config": {"s3_key": f"prefix/{partition_key}.csv"}}},
+        "ops": {"get_s3_data": {"config": {"s3_key": f"prefix/stock_{partition_key}.csv"}}},
     }
 
 
@@ -141,10 +141,10 @@ docker_week_3_schedule = ScheduleDefinition(
 
 
 @sensor(job=docker_week_3_pipeline)
-def docker_week_3_sensor():
+def docker_week_3_sensor(context):
     new_s3_keys = get_s3_keys(bucket="dagster", prefix="prefix", endpoint_url="http://host.docker.internal:4566")
     if not new_s3_keys:
-        yield SkipReason("No new files")
+        yield SkipReason("No new s3 files found in bucket.")
         return
     for key in new_s3_keys:
         yield RunRequest(
