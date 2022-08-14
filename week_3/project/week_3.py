@@ -149,5 +149,6 @@ def docker_week_3_sensor(context):
     for key in new_s3_keys:
         yield RunRequest(
             run_key=key,
-            run_config={"ops": {"get_s3_data": {"config": {"s3_key": key}}}}
+            run_config={"ops": {"get_s3_data": {"config": {"s3_key": key}}}, 
+                        "resources": docker["resources"]}
         )
