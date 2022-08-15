@@ -1,6 +1,6 @@
 from typing import List
 
-from dagster import Nothing, asset, with_resources, In, Out
+from dagster import Nothing, asset, with_resources
 from project.resources import redis_resource, s3_resource
 from project.types import Aggregation, Stock
 
@@ -8,7 +8,7 @@ from project.types import Aggregation, Stock
 @asset(
     config_schema={"s3_key": str},
     required_resource_keys={"s3"},
-    out={"stocks": Out(dagster_type=List[Stock])}
+    group_name="corise"
 )
 def get_s3_data(context):
     key_name = context.op_config["s3_key"]
@@ -21,8 +21,6 @@ def get_s3_data(context):
 
 
 @asset(
-    ins={"stocks": In(dagster_type=List[Stock], description="List of Stocks")},
-    out={"aggregation": Out(dagster_type=Aggregation, description="Aggregation of stock data")},
     group_name="corise"
 )
 def process_data(get_s3_data):
@@ -36,7 +34,6 @@ def process_data(get_s3_data):
 
 @asset(
     required_resource_keys={"redis"},
-    ins={"aggregation": In(dagster_type=Aggregation, description="Aggregation of stock data")},
     group_name="corise"
 )
 def put_redis_data(context, process_data):
