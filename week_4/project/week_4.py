@@ -46,4 +46,24 @@ def put_redis_data(context, process_data):
 
 
 
-get_s3_data_docker, process_data_docker, put_redis_data_docker = with_resources()
+get_s3_data_docker, process_data_docker, put_redis_data_docker = with_resources(
+    definitions=[get_s3_data, process_data, put_redis_data],
+    resource_defs={"s3": s3_resource,
+                   "redis": redis_resource},
+    resource_config_by_key={
+        "s3": {
+            "config": {
+                "bucket": "dagster",
+                "access_key": "test",
+                "secret_key": "test",
+                "endpoint_url": "http://host.docker.internal:4566",
+            }
+        },
+        "redis": {
+            "config": {
+                "host": "redis",
+                "port": 6379,
+            }
+        },
+    }
+)
